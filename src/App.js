@@ -78,25 +78,25 @@ class HoursCounter extends React.Component {
 }
 */
 
-function Filter() {
+function Filter(props) {
   return (
     <div style={{...defaultStyle}}>
       <img alt="filter" />
-      <input type="text" />
+      <input type="text" onKeyUp={event => props.onTextChange(event.target.value)} />
       Filter
     </div>
   );
 }
 
-function Playlist() {
+function Playlist(props) {
   return (
     <div style={{...defaultStyle, display:'inline-block', width: "25%"}}>
       <img alt="playlist"/>
-      <h3>Playlist Name</h3>
+      <h3>{props.playlist.name}</h3>
       <ul>
-        <li>Song 1</li>
-        <li>Song 2</li>
-        <li>Song 3</li>
+        <li>{props.playlist.songs[0].name}</li>
+        <li>{props.playlist.songs[1].name}</li>
+        <li>{props.playlist.songs[2].name}</li>
       </ul>
     </div>
   );
@@ -105,13 +105,17 @@ function Playlist() {
 class App extends React.Component {
   constructor() {
     super();
-    this.state = {serverData: {}}
-  }
+    this.state = {
+      serverData: {},
+      filterString: '',
+    }
+  };
   componentDidMount() {
     setTimeout(() => {
       this.setState({serverData: fakeServerData});
     }, 500);
-  }
+  };
+
   render() {
     return (
       <div className="App">
@@ -122,11 +126,11 @@ class App extends React.Component {
           </h1>
           <PlaylistCounter playlists={this.state.serverData.user.playlists}/>
           <HoursCounter playlists={this.state.serverData.user.playlists}/>
-          <Filter/>
-          <Playlist/>
-          <Playlist/>
-          <Playlist/>
-          <Playlist/>
+          <Filter onTextChange={text => this.setState({filterString: text})}/>
+          {this.state.serverData.user.playlists
+            .filter(playlist => playlist.name.toLowerCase().includes(this.state.filterString.toLocaleLowerCase()))
+            .map(playlist => <Playlist playlist={playlist} />
+          )}
         </div> 
         : 
         <h1 style={defaultStyle}>Loading...</h1>
