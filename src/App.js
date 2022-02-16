@@ -1,5 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
+import queryString from 'query-string';
 import './App.css';
+
+let DEV_BACKEND_LOGIN = 'http://localhost:8888/login';
+let PROD_BACKEND_LOGIN = 'https://youtube-tutorial1-backend.herokuapp.com/login'
 
 let defaultStyle = {
   color: '#fff',
@@ -103,6 +107,7 @@ function Playlist(props) {
 }
 
 class App extends React.Component {
+
   constructor() {
     super();
     this.state = {
@@ -111,16 +116,22 @@ class App extends React.Component {
     }
   };
   componentDidMount() {
-    setTimeout(() => {
-      this.setState({serverData: fakeServerData});
-    }, 500);
+    let parsed  = queryString.parse(window.location.search);
+    let accessToken = parsed.access_token
+
+    fetch('https://api.spotify.com/v1/me', {
+      headers: {'Authorization': 'Bearer ' + accessToken}
+    }).then(response => response.json())
+    .then(data => this.setState({serverData : {user: {name : data.display_name}}}));
   };
 
   render() {
-    let playlistToRender = this.state.serverData.user ?
-    this.state.serverData.user.playlists
-      .filter(playlist => playlist.name.toLowerCase().includes(
-        this.state.filterString.toLocaleLowerCase())) 
+    let playlistToRender = 
+      this.state.serverData.user && 
+      this.state.serverData.user.playlists
+        ? this.state.serverData.user.playlists.filter(playlist => 
+          playlist.name.toLowerCase().includes(
+            this.state.filterString.toLocaleLowerCase())) 
         : []
 
     return (
@@ -137,7 +148,10 @@ class App extends React.Component {
           )}
         </div> 
         : 
-        <h1 style={defaultStyle}>Loading...</h1>
+        <button onClick={() => window.location = DEV_BACKEND_LOGIN}
+        style={{padding:'20px', 'fontSize': '50px', 'marginTop': '20px'}}>
+           Sign in with Spotify 
+        </button>
         }
       </div>
     );
